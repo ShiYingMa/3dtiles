@@ -25,10 +25,12 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
 
-          # 🔥 关键修复：删除可能存在的 vcpkg.json，避免进入清单模式
-          if exist vcpkg.json del vcpkg.json
+          # ✅ 使用 PowerShell 兼容语法删除 vcpkg.json
+          if (Test-Path vcpkg.json) {
+            Remove-Item vcpkg.json
+          }
 
-          # 安装 OpenSceneGraph 和 GDAL（使用全名更可靠）
+          # 安装 OpenSceneGraph 和 GDAL
           .\vcpkg\vcpkg install openscenegraph:x64-windows gdal:x64-windows
 
       - name: ⚙️ Set environment for Cargo
