@@ -3,7 +3,7 @@ name: Build and Release 3dtiles for Windows
 on:
   push:
     tags:
-      - 'v*'        # 仅当推送以 v 开头的 tag 时触发发布（如 v1.0.0）
+      - 'v*'        # 只有推送 v 开头的 tag 才触发发布（如 v1.8.2）
   pull_request:
     branches: [ main, master ]
 
@@ -24,13 +24,16 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
-          # 安装 OpenSceneGraph + GDAL（使用官方端口）
-          .\vcpkg\vcpkg install osg:x64-windows gdal:x64-windows
 
-      - name: ⚙️ Set environment variables
+          # 🔥 关键修复：删除可能存在的 vcpkg.json，避免进入清单模式
+          if exist vcpkg.json del vcpkg.json
+
+          # 安装 OpenSceneGraph 和 GDAL（使用全名更可靠）
+          .\vcpkg\vcpkg install openscenegraph:x64-windows gdal:x64-windows
+
+      - name: ⚙️ Set environment for Cargo
         run: |
           echo "VCPKG_ROOT=$(pwd)/vcpkg" >> $GITHUB_ENV
-          echo "OSG_DIR=$(pwd)/vcpkg/installed/x64-windows" >> $GITHUB_ENV
 
       - name: 🏗️ Build release binary
         run: cargo build --release
@@ -58,5 +61,3 @@ jobs:
         with:
           files: 3dtiles-win-x64.zip
           token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
-          prerelease: false
